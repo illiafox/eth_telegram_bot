@@ -134,7 +134,7 @@ func CommandHandler(bot *tgbotapi.BotAPI, update tgbotapi.Update, config *Config
 				// Balance
 				balance = new(big.Int)
 				// Telegram bot output
-				output = time.Now().Format("🗓 *2006-01-02*\n⌚️ *3:04* PM\n\n")
+				output = time.Now().Format("🗓 *2006-01-02*\n⌚️ *3:04* PM (GMT+1)\n\n")
 			)
 			// Range rpc's
 			for _, rpc := range config.Dials {
