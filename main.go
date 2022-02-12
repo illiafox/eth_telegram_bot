@@ -53,9 +53,14 @@ func main() {
 	// Update timeout
 	Config.Timeout = time.Millisecond * Config.Timeout
 	// Create context
-	ctx := context.Background()
+	var (
+		background = context.Background()
+		ctx        context.Context
+		cancel     context.CancelFunc
+	)
 	// Check all rpc's
 	for i, rpc := range Config.Dials {
+		ctx, cancel = context.WithTimeout(background, Config.Timeout)
 		// Dial rpc client
 		rpc.Client, err = ethclient.Dial(rpc.Path)
 		if err != nil {
@@ -64,6 +69,9 @@ func main() {
 		}
 		// Ping client by calling last block number (TODO: Find better alternative)
 		_, err = rpc.Client.BlockNumber(ctx)
+		// Close context
+		cancel()
+		// Check error
 		if err != nil {
 			log.Fatalln("Testing client by calling last block:", rpc.Path, "\n\t", err)
 
@@ -117,8 +125,10 @@ func CommandHandler(bot *tgbotapi.BotAPI, update tgbotapi.Update, config *Config
 
 			// Get all dials
 			var (
-				// Create background context
+				// Create context
 				background = context.Background()
+				ctx        context.Context
+				cancel     context.CancelFunc
 				// Wallet adress
 				hex_adress = common.HexToAddress(adress)
 				// Balance
@@ -129,9 +139,12 @@ func CommandHandler(bot *tgbotapi.BotAPI, update tgbotapi.Update, config *Config
 			// Range rpc's
 			for _, rpc := range config.Dials {
 				// Update context
-				ctx, cancel := context.WithTimeout(background, time.Duration(config.Timeout))
+				ctx, cancel = context.WithTimeout(background, time.Duration(config.Timeout))
 				// Get balance with timeout
 				balance, err = rpc.Client.BalanceAt(ctx, hex_adress, nil)
+				// Cancel context
+				cancel()
+				// Check error
 				if err != nil {
 					// Print Error
 					log.Printf("%s (%s):\n\t%s", rpc.Name, rpc.Path, err)
@@ -142,8 +155,7 @@ func CommandHandler(bot *tgbotapi.BotAPI, update tgbotapi.Update, config *Config
 						output += fmt.Sprintf("*%s*:  `%s`\n", rpc.Name, "_service error_")
 					}
 				}
-				// Cancel context
-				cancel()
+
 				// If balance not equal 0
 				if balance.String() != "0" {
 					// add to output
