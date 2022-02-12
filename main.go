@@ -18,11 +18,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var (
-	valid_adress = regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
-	div_wei      = decimal.NewFromBigInt(big.NewInt(10), 18)
-)
-
 type RPC struct {
 	Name   string `yaml:"name"`
 	Path   string `yaml:"path"`
@@ -98,6 +93,10 @@ func main() {
 	}
 }
 
+// regexp for adresses
+var valid_adress = regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
+
+// Handler
 func CommandHandler(bot *tgbotapi.BotAPI, update tgbotapi.Update, config *Config_struct) {
 	var err error
 	// If recieved message commmand
@@ -155,11 +154,10 @@ func CommandHandler(bot *tgbotapi.BotAPI, update tgbotapi.Update, config *Config
 						output += fmt.Sprintf("*%s*:  `%s`\n", rpc.Name, "_service error_")
 					}
 				}
-
 				// If balance not equal 0
 				if balance.String() != "0" {
 					// add to output
-					output += fmt.Sprintf("*%s*:  `%s`\n", rpc.Name, decimal.NewFromBigInt(balance, 1).Div(div_wei))
+					output += fmt.Sprintf("*%s*:  `%s`\n", rpc.Name, decimal.NewFromBigInt(balance, -18))
 				}
 			}
 			// New Message
