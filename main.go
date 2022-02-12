@@ -134,7 +134,7 @@ func CommandHandler(bot *tgbotapi.BotAPI, update tgbotapi.Update, config *Config
 				// Balance
 				balance = new(big.Int)
 				// Telegram bot output
-				output = time.Now().Format("🗓 *2006-01-02*\n⌚️ *3:04* PM (GMT+1)\n\n")
+				output = time.Now().Format("🗓 *2006-01-02*\n⌚️ *3:04 PM* (GMT+1)\n\n")
 			)
 			// Range rpc's
 			for _, rpc := range config.Dials {
@@ -196,7 +196,7 @@ func CommandHandler(bot *tgbotapi.BotAPI, update tgbotapi.Update, config *Config
 		// If no one substituted:
 		default:
 			// Create message
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Command *not found!*\nType `/help` to see any")
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Command *not found!*\nType /help to see any")
 			// Set reply id
 			msg.ReplyToMessageID = update.Message.MessageID
 			// Set parse mode
