@@ -19,9 +19,9 @@ import (
 )
 
 type RPC struct {
-	Name   string `yaml:"name"`
-	Path   string `yaml:"path"`
-	Client *ethclient.Client
+	Name   string            `yaml:"name"` // Short rpc name (what do you want)
+	Path   string            `yaml:"path"` // link/path to local/online ethereum network
+	Client *ethclient.Client // Ethereum client
 }
 type Config_struct struct {
 	Token   string        `yaml:"token"`   // Bot token

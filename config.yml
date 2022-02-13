@@ -12,7 +12,3 @@ dials:
 
 - name: DeHive
   path: https://polygon-rpc.com/
-
-- name: FTM
-  path: https://rpc.ftm.tools/
-
