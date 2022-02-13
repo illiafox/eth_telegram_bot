@@ -1,3 +1,4 @@
+[![Go](https://github.com/illiafox/eth_telegram_bot/actions/workflows/go.yml/badge.svg)](https://github.com/illiafox/eth_telegram_bot/actions/workflows/go.yml)
 # eth_telegram_bot: Simple bot for monitoring ethereum systems
 
 ### Done
