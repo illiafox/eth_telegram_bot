@@ -38,22 +38,21 @@ func main() {
 	if err != nil {
 		log.Fatalln("Opening config:\n\t", err)
 	}
-	// Main struct
+
 	var Config = Config_struct{Timeout: time.Second}
 	// Parse yaml
 	err = yaml.Unmarshal(data, &Config)
 	if err != nil {
 		log.Fatalln("Parsing yaml:\n\t", err)
 	}
-	// Update timeout
 	Config.Timeout = time.Millisecond * Config.Timeout
-	// Create context
+
 	var (
 		background = context.Background()
 		ctx        context.Context
 		cancel     context.CancelFunc
 	)
-	// Check all rpc's
+
 	for i, rpc := range Config.Dials {
 		ctx, cancel = context.WithTimeout(background, Config.Timeout)
 		// Dial rpc client
@@ -66,12 +65,11 @@ func main() {
 		_, err = rpc.Client.BlockNumber(ctx)
 		// Close context
 		cancel()
-		// Check error
 		if err != nil {
 			log.Fatalln("Testing client by calling last block:", rpc.Path, "\n\t", err)
 
 		}
-		// If ok, set to config
+
 		Config.Dials[i] = rpc
 	}
 
@@ -81,40 +79,33 @@ func main() {
 	if err != nil {
 		log.Fatalln("Connecting to api:\n\t", err)
 	}
-	// Set updates
+
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
-	// Log
 	log.Println("Started successfully")
+
 	// Recieve channel updates
 	for update := range bot.GetUpdatesChan(u) {
-		// call Handler with goroutine
 		go CommandHandler(bot, update, &Config)
 	}
 }
 
-// regexp for adresses
 var valid_adress = regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
 
-// Handler
 func CommandHandler(bot *tgbotapi.BotAPI, update tgbotapi.Update, config *Config_struct) {
 	var err error
-	// If recieved message commmand
-	if update.Message != nil && update.Message.IsCommand() {
-		// Switch for command
-		switch update.Message.Command() {
 
+	if update.Message != nil && update.Message.IsCommand() {
+
+		switch update.Message.Command() {
 		// Balance
 		case "balance":
 			adress := update.Message.CommandArguments()
 			// If adress is not valid
 			if !valid_adress.MatchString(adress) {
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Wallet adress is *not valid*!")
-				// Set reply id
 				msg.ReplyToMessageID = update.Message.MessageID
-				// Set parse mode
 				msg.ParseMode = tgbotapi.ModeMarkdown
-				// Send message
 				_, err = bot.Send(msg)
 				if err != nil {
 					log.Println("/balance: Trying to send 'incorrect wallet' message\n\t", err)
@@ -124,7 +115,6 @@ func CommandHandler(bot *tgbotapi.BotAPI, update tgbotapi.Update, config *Config
 
 			// Get all dials
 			var (
-				// Create context
 				background = context.Background()
 				ctx        context.Context
 				cancel     context.CancelFunc
@@ -135,7 +125,7 @@ func CommandHandler(bot *tgbotapi.BotAPI, update tgbotapi.Update, config *Config
 				// Telegram bot output
 				output = time.Now().Format("🗓 *2006-01-02*\n⌚️ *3:04 PM* (GMT+1)\n\n")
 			)
-			// Range rpc's
+
 			for _, rpc := range config.Dials {
 				// Update context
 				ctx, cancel = context.WithTimeout(background, time.Duration(config.Timeout))
@@ -143,11 +133,10 @@ func CommandHandler(bot *tgbotapi.BotAPI, update tgbotapi.Update, config *Config
 				balance, err = rpc.Client.BalanceAt(ctx, hex_adress, nil)
 				// Cancel context
 				cancel()
-				// Check error
+
 				if err != nil {
-					// Print Error
 					log.Printf("%s (%s):\n\t%s", rpc.Name, rpc.Path, err)
-					// Switch error
+
 					switch err.(type) {
 					// If server error
 					case *url.Error:
@@ -156,17 +145,13 @@ func CommandHandler(bot *tgbotapi.BotAPI, update tgbotapi.Update, config *Config
 				}
 				// If balance not equal 0
 				if balance.String() != "0" {
-					// add to output
 					output += fmt.Sprintf("*%s*:  `%s`\n", rpc.Name, decimal.NewFromBigInt(balance, -18))
 				}
 			}
-			// New Message
+
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, output)
-			// Set reply id
 			msg.ReplyToMessageID = update.Message.MessageID
-			// Set parse mode
 			msg.ParseMode = tgbotapi.ModeMarkdown
-			// Send message
 			_, err = bot.Send(msg)
 			if err != nil {
 				log.Println("/balance: Trying to send reply message\n\t", err)
@@ -174,18 +159,14 @@ func CommandHandler(bot *tgbotapi.BotAPI, update tgbotapi.Update, config *Config
 
 		// Help - all commands
 		case "help":
-			// Create message
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID,
 				`*Commands:*
 /balance: view adress eth amount
 	We check all available rpc's
 `,
 			)
-			// Set reply id
 			msg.ReplyToMessageID = update.Message.MessageID
-			// Set parse mode
 			msg.ParseMode = tgbotapi.ModeMarkdown
-			// Send message
 			_, err = bot.Send(msg)
 			if err != nil {
 				log.Println("/help: Trying to send reply message\n\t", err)
@@ -193,13 +174,9 @@ func CommandHandler(bot *tgbotapi.BotAPI, update tgbotapi.Update, config *Config
 
 		// If no one substituted:
 		default:
-			// Create message
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Command *not found!*\nType /help to see any")
-			// Set reply id
 			msg.ReplyToMessageID = update.Message.MessageID
-			// Set parse mode
 			msg.ParseMode = tgbotapi.ModeMarkdown
-			// Send message
 			_, err = bot.Send(msg)
 			if err != nil {
 				log.Println("Trying to send 'not found, see /help' message\n\t", err)
